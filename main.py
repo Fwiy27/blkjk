@@ -1,4 +1,5 @@
 from Dealer.dealer import Dealer
 import random
 
-random.seed()
+d = Dealer(6)
+d.play()

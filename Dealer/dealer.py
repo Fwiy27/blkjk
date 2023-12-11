@@ -1,5 +1,6 @@
 from os import system
 import sys
+import time
 
 from Deck.deck import Deck
 
@@ -37,18 +38,26 @@ def fix_hand(hand):
     return hand
     
 class Dealer:
-    def __init__(self, size):
+    def __init__(self, size=6, money=5000):
         self.d = Deck(size)
         self.user_hand = []
         self.dealer_hand = []
-        self.status = 'play'
+        self.money = money
+        self.bet_amount = 250
 
     def print_board(self):
         clear_screen()
+        print(f'Money: ${self.money}')
+        print('---------------')
         print_hand(self.dealer_hand)
         print_hand(self.user_hand)
     
     def deal(self):
+        if len(self.d.deck) <= 10:
+            self.d.shuffle()
+        self.dealer_hand = []
+        self.user_hand = []
+
         # Deal 2 to dealer
         for i in range(2):
             self.dealer_hand.append(self.d.draw())
@@ -64,12 +73,6 @@ class Dealer:
         if calculate_count(self.dealer_hand) == 21:
             self.status = 'lose'
 
-        # Print hands
-        self.print_board()
-
-        if self.status == 'lose':
-            print('Dealer Wins')
-        
     def hit(self, who):
         if who == 'user':
             self.user_hand.append(self.d.draw())
@@ -78,9 +81,68 @@ class Dealer:
             self.dealer_hand.append(self.d.draw())
             self.dealer_hand = fix_hand(self.dealer_hand)
 
-###
-d = Dealer(1)
-d.deal()
-input()
-d.hit('user')
-d.print_board()
+    def play(self):
+        bet_amount = None
+        while bet_amount == None:
+            clear_screen()
+            print(f'Money: ${self.money}')
+            bet_amount = input('Bet Amount: ')
+            if bet_amount == 'clear':
+                clear_screen()
+                exit()
+            elif bet_amount != '':
+                try:
+                    self.bet_amount = max(min(int(bet_amount), self.money), 0)
+                except:
+                    bet_amount = None
+                    input('Invalid Bet Amount, Press Enter to Continue . . .')
+                
+
+        self.status = 'play'
+        stand = False
+        clear_screen()
+        self.deal()
+        while self.status == 'play':
+            self.print_board()
+            while calculate_count(self.user_hand) <= 21 and not stand:
+                command = input('Command: ')
+                match command:
+                    case "hit" | "h":
+                        self.hit('user')
+                    case "stand" | "s":
+                        stand = True
+                    case "clear":
+                        clear_screen()
+                        exit()
+                    case _:
+                        input('Invalid Command, Press Enter to Continue . . .')
+                clear_screen()
+                self.print_board()
+            if calculate_count(self.user_hand) <= 21:
+                while calculate_count(self.dealer_hand) < 17:
+                    self.hit('dealer')
+                    time.sleep(1)
+                    clear_screen()
+                    self.print_board()
+                self.status = 'tbd'
+            else:  
+                self.status = 'lose'
+        
+        # check for winner
+        if self.status != 'lose':
+            if calculate_count(self.user_hand) > calculate_count(self.dealer_hand):
+                self.status = 'win'
+            elif calculate_count(self.dealer_hand) > 21:
+                self.status = 'win'
+            else: self.status = 'lose'
+        
+        # update money
+        match self.status:
+            case "win":
+                self.money += self.bet_amount
+                input('WON, Press Enter to Continue . . .')
+            case "lose":
+                self.money -= self.bet_amount
+                input('LOST, Press Enter to Continue . . .')
+        
+        self.play()
