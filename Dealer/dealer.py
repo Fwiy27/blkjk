@@ -70,9 +70,6 @@ class Dealer:
         self.dealer_hand = fix_hand(self.dealer_hand)
         self.user_hand = fix_hand(self.user_hand)
 
-        if calculate_count(self.dealer_hand) == 21:
-            self.status = 'lose'
-
     def hit(self, who):
         if who == 'user':
             self.user_hand.append(self.d.draw())
@@ -96,12 +93,14 @@ class Dealer:
                 except:
                     bet_amount = None
                     input('Invalid Bet Amount, Press Enter to Continue . . .')
-                
 
         self.status = 'play'
         stand = False
         clear_screen()
         self.deal()
+        if calculate_count(self.dealer_hand) == 21:
+            self.print_board()
+            self.status = 'lose'
         while self.status == 'play':
             self.print_board()
             while calculate_count(self.user_hand) <= 21 and not stand:
