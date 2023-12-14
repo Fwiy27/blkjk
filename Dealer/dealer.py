@@ -1,9 +1,15 @@
 from os import system
 import sys
-import time
+from colorama import Fore
 import random
 
 from Deck.deck import Deck
+
+def print_line(length):
+    s = ''
+    for i in range(length):
+        s+='-'
+    print(s)
 
 def clear_screen():
     if sys.platform.startswith('win'):
@@ -23,33 +29,47 @@ def calculate_count(hand):
             alternate_sum += card['value']
     return sum if alternate_sum == sum else [sum, alternate_sum]
 
-def print_hand(hand, who, hidden=False):
-    print(who, end='')
+def print_hand(hand, who, hidden=False, print_ln=True):
+    p = who + ' '
     if not hidden:
         for card in hand:
-            print(f'[{card["card"]}]', end='')
-        print(f' | {calculate_count(hand)}')
+            p+=f'[{card["card"]}]'
+        p+=f' | {calculate_count(hand)}'
     else:
-        print(f'[{hand[0]["card"]}] | {hand[0]["value"]}')
+        p += f'[{hand[0]["card"]}][?] | {hand[0]["value"]}'
+    return p
 
 def fix_hand(hand, high=False):
-    hand_count = calculate_count(hand)
-    if isinstance(hand, list):
-        if not high:
-            for i in range(0, len(hand)):
-                if isinstance(hand[i]['value'], list):
-                    if max(hand_count) > 21:
-                        hand[i]['value'] = hand[i]['value'][0]
-                    else: 
-                        hand[i]['value'] = hand[i]['value'][1]
-            return hand
-        else:
-            for i in range(0, len(hand)):
-                if isinstance(hand[i]['value'], list):
-                    if max(hand_count) < 21:
-                        hand[i]['value'] = hand[i]['value'][1]
-                    else: 
-                        hand[i]['value'] = hand[i]['value'][0]
+    count_of_list = 0
+    for card in hand:
+        count_of_list += 1 if isinstance(card['value'], list) else 0
+
+    if count_of_list in [0, 1]:
+        hand_count = calculate_count(hand)
+        if isinstance(hand, list):
+            if not high:
+                for i in range(0, len(hand)):
+                    if isinstance(hand[i]['value'], list):
+                        if max(hand_count) > 21:
+                            hand[i]['value'] = hand[i]['value'][0]
+                        else: 
+                            hand[i]['value'] = hand[i]['value'][1]
+                return hand
+            else:
+                for i in range(0, len(hand)):
+                    if isinstance(hand[i]['value'], list):
+                        if max(hand_count) < 21:
+                            hand[i]['value'] = hand[i]['value'][1]
+                        else: 
+                            hand[i]['value'] = hand[i]['value'][0]
+        
+    else:
+        list_changed = 0
+        for i in range(0, len(hand)):
+            if isinstance(hand[i]['value'], list):
+                hand[i]['value'] = hand[i]['value'][list_changed]
+                list_changed = int(not list_changed)
+    return hand
                
     
 class Dealer:
@@ -62,10 +82,12 @@ class Dealer:
 
     def print_board(self, hidden=False):
         clear_screen()
-        print(f'Money: ${self.money}')
-        print('---------------')
-        print_hand(self.dealer_hand, 'Dealer: ', hidden)
-        print_hand(self.user_hand, 'User: ')
+        print(f'{Fore.GREEN}Money: ${self.money}{Fore.RESET}')
+        print_line(25)
+        print(print_hand(self.dealer_hand, '[DEALER]', hidden))
+        print_line(25)
+        print(print_hand(self.user_hand, '[YOU]'))
+        print_line(25)
     
     def deal(self):
         if len(self.d.deck) <= 10:
@@ -130,7 +152,9 @@ class Dealer:
     def play(self):
         while self.money > 0:
             clear_screen()
-            print(f'Money: {self.money}')
+            print(f'{Fore.LIGHTBLACK_EX}[B]{Fore.RED}[L]{Fore.LIGHTBLACK_EX}[A]{Fore.RED}[C]{Fore.LIGHTBLACK_EX}[K]{Fore.RED}[J]{Fore.LIGHTBLACK_EX}[A]{Fore.RED}[C]{Fore.LIGHTBLACK_EX}[K]{Fore.RESET}')
+            print('---------------------------')
+            print(f'{Fore.GREEN}Money: {self.money}{Fore.RESET}')
             bet = input('Bet: ')
             try:
                 self.bet_amount = max(min(self.money, int(bet)), 0)
@@ -160,17 +184,21 @@ class Dealer:
                         case "hit" | "h":
                             self.hit('user')
                         case "stand" | "s":
+                            if isinstance(calculate_count(self.user_hand), list):
+                                self.user_hand = fix_hand(self.user_hand)
                             player = 'dealer'
                 else:
                     hidden = False
                     # Dealer Plays (optional)
                     self.print_board()
                     input('Press Enter to Continue . . .')
-                    if isinstance(calculate_count(d.dealer_hand), list):
-                        if max(calculate_count(d.dealer_hand)) >= 18:
-                            self.dealer_hand = fix_hand(d.dealer_hand)
+                    if isinstance(calculate_count(self.dealer_hand), list):
+                        if max(calculate_count(self.dealer_hand)) >= 18:
+                            self.dealer_hand = fix_hand(self.dealer_hand)
+                        else:
+                            self.hit('dealer')
                     else:
-                        if calculate_count(d.dealer_hand) < 18:
+                        if calculate_count(self.dealer_hand) < 18:
                             self.hit('dealer')
 
                 # Check for win
@@ -181,14 +209,9 @@ class Dealer:
             match status:
                 case 'win':
                     self.money += self.bet_amount
-                    input('WIN')
+                    print(f'{Fore.GREEN}WIN{Fore.RESET}')
+                    input('Press Enter to Continue . . .')
                 case 'lose':
                     self.money -= self.bet_amount
-                    input('LOSE')
-        
-        
-# random.seed(763)
-
-d = Dealer()
-
-d.play()
+                    print(f'{Fore.RED}LOSE{Fore.RESET}')
+                    input('Press Enter to Continue . . .')
