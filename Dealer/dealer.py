@@ -156,6 +156,7 @@ class Dealer:
         return 'play'
     
     def play(self):
+        most = self.money
         while self.money > 0:
             clear_screen()
             print(f'{Fore.LIGHTBLACK_EX}[B]{Fore.RED}[L]{Fore.LIGHTBLACK_EX}[A]{Fore.RED}[C]{Fore.LIGHTBLACK_EX}[K]{Fore.RED}[J]{Fore.LIGHTBLACK_EX}[A]{Fore.RED}[C]{Fore.LIGHTBLACK_EX}[K]{Fore.RESET} ({len(self.d.deck)} cards remaining)')
@@ -227,6 +228,8 @@ class Dealer:
             match status:
                 case 'win':
                     self.money += self.bet_amount
+                    if self.money > most:
+                        most = self.money
                     print(f'{Fore.GREEN}WIN{Fore.RESET}')
                     input('Press Enter to Continue . . .')
                 case 'lose':
@@ -235,3 +238,5 @@ class Dealer:
                         self.bet_amount = self.money
                     print(f'{Fore.RED}LOSE{Fore.RESET}')
                     input('Press Enter to Continue . . .')
+
+        input(f'{Fore.RED}OUT OF MONEY! {Fore.GREEN}Max: ${most}{Fore.RESET} Press Enter to Continue . . .')
