@@ -156,10 +156,19 @@ class Dealer:
             print('---------------------------')
             print(f'{Fore.GREEN}Money: {self.money}{Fore.RESET}')
             bet = input('Bet: ')
-            try:
-                self.bet_amount = max(min(self.money, int(bet)), 0)
-            except:
-                pass
+            match bet:
+                case "all":
+                    self.bet_amount = self.money
+                case "half":
+                    self.bet_amount = int(self.money/2)
+                case "clear":
+                    clear_screen()
+                    exit()    
+                case _:
+                    try:
+                        self.bet_amount = max(min(self.money, int(bet)), 0)
+                    except:
+                        pass
            
 
 
@@ -216,5 +225,7 @@ class Dealer:
                     input('Press Enter to Continue . . .')
                 case 'lose':
                     self.money -= self.bet_amount
+                    if self.bet_amount > self.money:
+                        self.bet_amount = self.money
                     print(f'{Fore.RED}LOSE{Fore.RESET}')
                     input('Press Enter to Continue . . .')
