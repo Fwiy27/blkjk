@@ -152,7 +152,7 @@ class Dealer:
     def play(self):
         while self.money > 0:
             clear_screen()
-            print(f'{Fore.LIGHTBLACK_EX}[B]{Fore.RED}[L]{Fore.LIGHTBLACK_EX}[A]{Fore.RED}[C]{Fore.LIGHTBLACK_EX}[K]{Fore.RED}[J]{Fore.LIGHTBLACK_EX}[A]{Fore.RED}[C]{Fore.LIGHTBLACK_EX}[K]{Fore.RESET}')
+            print(f'{Fore.LIGHTBLACK_EX}[B]{Fore.RED}[L]{Fore.LIGHTBLACK_EX}[A]{Fore.RED}[C]{Fore.LIGHTBLACK_EX}[K]{Fore.RED}[J]{Fore.LIGHTBLACK_EX}[A]{Fore.RED}[C]{Fore.LIGHTBLACK_EX}[K]{Fore.RESET} ({len(self.d.deck)} cards remaining)')
             print('---------------------------')
             print(f'{Fore.GREEN}Money: {self.money}{Fore.RESET}')
             bet = input('Bet: ')
@@ -187,6 +187,9 @@ class Dealer:
                             if isinstance(calculate_count(self.user_hand), list):
                                 self.user_hand = fix_hand(self.user_hand)
                             player = 'dealer'
+                        case _:
+                            self.hit('user')
+
                 else:
                     hidden = False
                     # Dealer Plays (optional)
