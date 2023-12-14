@@ -18,16 +18,22 @@ def clear_screen():
         system('clear')
 
 def calculate_count(hand):
-    sum = 0
-    alternate_sum = 0
+    num_list = 0
     for card in hand:
-        if isinstance(card['value'], list):
-            sum += card['value'][0]
-            alternate_sum += card['value'][1]
-        else:
-            sum += card['value']
-            alternate_sum += card['value']
-    return sum if alternate_sum == sum else [sum, alternate_sum]
+        num_list += 1 if isinstance(card['value'], list) else 0
+    if num_list in [0, 1]:
+        sum = 0
+        alternate_sum = 0
+        for card in hand:
+            if isinstance(card['value'], list):
+                sum += card['value'][0]
+                alternate_sum += card['value'][1]
+            else:
+                sum += card['value']
+                alternate_sum += card['value']
+        return sum if alternate_sum == sum else [sum, alternate_sum]
+    else:
+        return [2, 12, 22]
 
 def print_hand(hand, who, hidden=False, print_ln=True):
     p = who + ' '
